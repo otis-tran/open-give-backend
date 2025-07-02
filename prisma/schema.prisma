@@ -1,0 +1,248 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+//
+// ENUMS
+//
+
+enum campaign_status {
+  draft
+  active
+  paused
+  completed
+  cancelled
+}
+
+enum donation_status {
+  pending
+  completed
+  failed
+  refunded
+}
+
+enum id_type {
+  citizen_id
+  passport
+  driver_license
+}
+
+enum kyc_method {
+  manual_review
+  government_db
+  hospital_verification
+}
+
+enum kyc_status {
+  pending
+  approved
+  rejected
+  requires_additional_info
+}
+
+enum notification_type {
+  donation_received
+  campaign_update
+  kyc_status
+  system
+}
+
+enum user_role {
+  admin
+  donor
+  beneficiary
+}
+
+//
+// MODELS
+//
+
+model campaign_beneficiaries {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaign_id       String?  @db.Uuid
+  beneficiary_id    String?  @db.Uuid
+  allocation_amount Decimal? @db.Decimal(15, 2)
+  status            String   @default("pending")
+  created_at        DateTime @default(now())
+
+  campaign    campaigns? @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+  beneficiary users?     @relation(fields: [beneficiary_id], references: [id])
+}
+
+model campaign_updates {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaign_id String?  @db.Uuid
+  title       String   @db.VarChar(255)
+  content     String
+  images      String[]
+  created_by  String?  @db.Uuid
+  created_at  DateTime @default(now())
+
+  campaign campaigns? @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+  creator  users?     @relation("campaign_updates_created_byTouser", fields: [created_by], references: [id])
+}
+
+model campaigns {
+  id                    String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title                 String          @db.VarChar(500)
+  description           String
+  target_amount         Decimal         @db.Decimal(15, 2)
+  current_amount        Decimal         @default(0) @db.Decimal(15, 2)
+  minimum_beneficiaries Int             @default(10)
+  current_beneficiaries Int             @default(0)
+  start_date            DateTime
+  end_date              DateTime
+  status                campaign_status @default(draft)
+  category              String          @db.VarChar(100)
+  location              String?         @db.VarChar(255)
+  images                String[]
+  documents             String[]
+  created_by            String?         @db.Uuid
+  created_at            DateTime        @default(now())
+  updated_at            DateTime        @default(now())
+
+  creator       users?                   @relation("campaigns_created_byTouser", fields: [created_by], references: [id])
+  beneficiaries campaign_beneficiaries[]
+  updates       campaign_updates[]
+  donations     donations[]
+
+  @@index([category], name: "idx_campaigns_category")
+  @@index([created_at], name: "idx_campaigns_created_at")
+  @@index([start_date, end_date], name: "idx_campaigns_dates")
+  @@index([status], name: "idx_campaigns_status")
+}
+
+model donations {
+  id             String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  campaign_id    String?         @db.Uuid
+  donor_id       String?         @db.Uuid
+  amount         Decimal         @db.Decimal(15, 2)
+  message        String?
+  is_anonymous   Boolean         @default(false)
+  payment_method String?         @db.VarChar(50)
+  transaction_id String?         @db.VarChar(255)
+  status         donation_status @default(pending)
+  donated_at     DateTime        @default(now())
+  processed_at   DateTime?
+
+  campaign campaigns? @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+  donor    users?     @relation(fields: [donor_id], references: [id])
+
+  @@index([campaign_id], name: "idx_donations_campaign_id")
+  @@index([donor_id], name: "idx_donations_donor_id")
+  @@index([status], name: "idx_donations_status")
+}
+
+model kyc_verifications {
+  id                   String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id              String     @db.Uuid
+  id_number            String     @db.VarChar(50)
+  id_type              id_type
+  full_name            String     @db.VarChar(255)
+  date_of_birth        DateTime   @db.Date
+  address              String
+  front_id_image       String
+  back_id_image        String
+  selfie_image         String
+  additional_documents String[]
+  verification_method  kyc_method @default(manual_review)
+  status               kyc_status @default(pending)
+  rejection_reason     String?
+  verified_by          String?    @db.Uuid
+  submitted_at         DateTime   @default(now())
+  verified_at          DateTime?
+
+  user     users  @relation("UserKyc_user_id", fields: [user_id], references: [id], onDelete: Cascade)
+  verifier users? @relation("UserKyc_verified_by", fields: [verified_by], references: [id])
+
+  @@index([status], name: "idx_kyc_status")
+  @@index([user_id], name: "idx_kyc_user_id")
+}
+
+model notifications {
+  id         String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String?           @db.Uuid
+  title      String            @db.VarChar(255)
+  message    String
+  type       notification_type
+  is_read    Boolean           @default(false)
+  related_id String?           @db.Uuid
+  created_at DateTime          @default(now())
+
+  user users? @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([is_read], name: "idx_notifications_is_read")
+  @@index([user_id], name: "idx_notifications_user_id")
+}
+
+model refresh_tokens {
+  token      String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String?   @db.Uuid
+  expires_at DateTime
+  revoked_at DateTime?
+  created_at DateTime  @default(now())
+
+  user users? @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([expires_at], name: "idx_refresh_tokens_expires_at")
+  @@index([user_id], name: "idx_refresh_tokens_user_id")
+}
+
+model user_login_history {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String?  @db.Uuid
+  ip_address String?  @db.VarChar(50)
+  user_agent String?
+  success    Boolean?
+  created_at DateTime @default(now())
+
+  user users? @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([created_at], name: "idx_user_login_history_created_at")
+  @@index([user_id], name: "idx_user_login_history_user_id")
+}
+
+model users {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                 String    @unique @db.VarChar(255)
+  password_hash         String    @db.VarChar(255)
+  full_name             String    @db.VarChar(255)
+  phone                 String?   @db.VarChar(20)
+  avatar_url            String?
+  role                  user_role
+  is_active             Boolean   @default(true)
+  is_verified           Boolean   @default(false)
+  failed_login_attempts Int       @default(0)
+  last_failed_login_at  DateTime?
+  last_login_at         DateTime?
+  token_version         Int       @default(0)
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @default(now())
+
+  campaigns              campaigns[]              @relation("campaigns_created_byTouser")
+  campaign_updates       campaign_updates[]       @relation("campaign_updates_created_byTouser")
+  campaign_beneficiaries campaign_beneficiaries[]
+  donations              donations[]
+  kyc_verifications      kyc_verifications[]      @relation("UserKyc_user_id")
+  kyc_verified           kyc_verifications[]      @relation("UserKyc_verified_by")
+  notifications          notifications[]
+  refresh_tokens         refresh_tokens[]
+  user_login_history     user_login_history[]
+
+  @@index([email], name: "idx_users_email")
+  @@index([failed_login_attempts], name: "idx_users_failed_login_attempts")
+  @@index([last_login_at], name: "idx_users_last_login_at")
+  @@index([role], name: "idx_users_role")
+}
