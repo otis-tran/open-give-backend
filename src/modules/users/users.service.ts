@@ -19,7 +19,7 @@ export class UsersService {
   }
 
   findOne(id: number) {
-    const user = this.users.find(u => u.id === id);
+    const user = this.users.find((u) => u.id === id);
     if (!user) throw new NotFoundException('User not found');
     return user;
   }
@@ -31,7 +31,7 @@ export class UsersService {
   }
 
   remove(id: number) {
-    const idx = this.users.findIndex(u => u.id === id);
+    const idx = this.users.findIndex((u) => u.id === id);
     if (idx === -1) throw new NotFoundException('User not found');
     this.users.splice(idx, 1);
     return { deleted: true };

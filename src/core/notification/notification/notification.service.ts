@@ -10,23 +10,24 @@ export class NotificationService {
     private readonly smsService: SmsService,
   ) {}
 
-  async sendEmail(payload: NotificationPayload): Promise<NotificationResult> {
+  sendEmail(payload: NotificationPayload): Promise<NotificationResult> {
     try {
-      // Giả lập gửi email
-      console.log(`Sending email to ${payload.to}: ${payload.subject}`);
-      return { success: true, id: `email-${Date.now()}` };
+      const toList = Array.isArray(payload.to) ? payload.to.join(', ') : payload.to;
+      console.log(`Sending email to ${toList}: ${payload.subject}`);
+      return Promise.resolve({ success: true, id: `email-${Date.now()}` });
     } catch (error) {
-      return { success: false, error: error.message };
+      const errMsg = error instanceof Error ? error.message : String(error);
+      return Promise.resolve({ success: false, error: errMsg });
     }
   }
 
-  async sendSms(to: string, message: string): Promise<NotificationResult> {
+  sendSms(to: string, message: string): Promise<NotificationResult> {
     try {
-      // Giả lập gửi SMS
       console.log(`Sending SMS to ${to}: ${message}`);
-      return { success: true, id: `sms-${Date.now()}` };
+      return Promise.resolve({ success: true, id: `sms-${Date.now()}` });
     } catch (error) {
-      return { success: false, error: error.message };
+      const errMsg = error instanceof Error ? error.message : String(error);
+      return Promise.resolve({ success: false, error: errMsg });
     }
   }
 }
