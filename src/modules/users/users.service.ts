@@ -1,33 +1,39 @@
-import { Injectable } from '@nestjs/common';
-import { NotificationService } from 'src/core/notification/notification/notification.service';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly notificationService: NotificationService) {}
+  private users: User[] = [];
+  private id = 1;
 
-  async createUser(userData: any) {
-    // Logic tạo người dùng...
-    
-    // Sử dụng shared notification service
-    await this.notificationService.sendEmail({
-      to: userData.email,
-      subject: 'Welcome to our platform!',
-      content: `Hi ${userData.name}, your account has been created successfully.`
-    });
-    
-    return { id: 1, ...userData };
+  create(dto: CreateUserDto) {
+    const user: User = { id: this.id++, ...dto };
+    this.users.push(user);
+    return user;
   }
-  
-  async resetPassword(email: string) {
-    // Logic reset mật khẩu...
-    
-    // Sử dụng shared notification service
-    await this.notificationService.sendEmail({
-      to: email,
-      subject: 'Password Reset',
-      content: 'Here is your password reset link...'
-    });
-    
-    return { success: true };
+
+  findAll() {
+    return this.users;
+  }
+
+  findOne(id: number) {
+    const user = this.users.find(u => u.id === id);
+    if (!user) throw new NotFoundException('User not found');
+    return user;
+  }
+
+  update(id: number, dto: UpdateUserDto) {
+    const user = this.findOne(id);
+    Object.assign(user, dto);
+    return user;
+  }
+
+  remove(id: number) {
+    const idx = this.users.findIndex(u => u.id === id);
+    if (idx === -1) throw new NotFoundException('User not found');
+    this.users.splice(idx, 1);
+    return { deleted: true };
   }
 }
