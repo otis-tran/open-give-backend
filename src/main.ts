@@ -1,7 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { checkEnvFile } from './utils/check-env-file';
 
 async function bootstrap() {
+  checkEnvFile();
   const app = await NestFactory.create(AppModule);
 
   // Nếu bạn chạy trong WSL/Container, bind ra 0.0.0.0
