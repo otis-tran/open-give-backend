@@ -3,10 +3,14 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './modules/users/users.module';
 import { NotificationModule } from './core/notification/notification.module';
+import { HashService } from './core/security/hash/hash.service';
+import { AuthModule } from './modules/auth/auth.module';
+import { ConfigModule } from '@nestjs/config';
+import { PrismaService } from './core/prisma/prisma.service';
 
 @Module({
-  imports: [NotificationModule, UsersModule],
+  imports: [ConfigModule.forRoot(), NotificationModule, UsersModule, AuthModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, HashService, PrismaService],
 })
 export class AppModule {}
