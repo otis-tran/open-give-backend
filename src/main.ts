@@ -32,3 +32,6 @@ async function bootstrap() {
 }
 
 void bootstrap();
+
+console.log('🕐 System time check:');
+console.log('Real time:', new Date().toISOString());
