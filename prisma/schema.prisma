@@ -123,7 +123,7 @@ model notifications {
 // prisma/schema.prisma
 model refresh_tokens {
   id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid  // Tạo cột id riêng làm primary key
-  token      String    @unique                                                    // Thay đổi: bỏ @id, thêm @unique, bỏ @db.Uuid
+  token_hash String    @unique
   user_id    String?   @db.Uuid
   expires_at DateTime  @db.Timestamp(6)
   revoked_at DateTime? @db.Timestamp(6)
@@ -132,7 +132,6 @@ model refresh_tokens {
 
   @@index([expires_at], map: "idx_refresh_tokens_expires_at")
   @@index([user_id], map: "idx_refresh_tokens_user_id")
-  @@index([token], map: "idx_refresh_tokens_token")  // Thêm index cho token để tìm kiếm nhanh
 }
 
 model user_login_history {
@@ -173,6 +172,8 @@ model users {
   notifications          notifications[]
   refresh_tokens         refresh_tokens[]
   user_login_history     user_login_history[]
+  two_factor_enabled Boolean? @default(false)
+  two_factor_secret  String?  // Secret dùng cho 2FA TOTP (Google Auth ...)
 
   @@index([email], map: "idx_users_email")
   @@index([failed_login_attempts], map: "idx_users_failed_login_attempts")

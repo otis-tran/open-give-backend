@@ -11,9 +11,20 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
+import { AuthRepository } from './repositories/auth.repository';
+import { ConfigModule } from '@nestjs/config';
+import { CacheModule } from '@nestjs/cache-manager';
+import { TwoFactorService } from './services/two-factor.service';
+import authConfig from 'src/config/auth.config';
 
 @Module({
   imports: [
+    ConfigModule.forFeature(authConfig), // ← Add ConfigModule
+    CacheModule.register({
+      // ← Add CacheModule
+      ttl: 300000, // 5 minutes
+      max: 1000, // max items
+    }),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: jwtConstants.accessTokenSecret,
@@ -34,6 +45,8 @@ import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
     HashService,
     JwtStrategy,
     JwtRefreshStrategy,
+    AuthRepository,
+    TwoFactorService,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,

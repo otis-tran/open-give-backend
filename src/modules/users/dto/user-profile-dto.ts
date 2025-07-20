@@ -1,7 +1,18 @@
+import { Expose } from 'class-transformer';
+
 export class UserProfileDto {
-  sub: string;
-  email: string;
-  full_name: string;
-  role: string;
-  is_verified: boolean;
+  @Expose()
+  sub!: string;
+
+  @Expose()
+  email!: string;
+
+  @Expose()
+  full_name!: string;
+
+  @Expose()
+  role!: string;
+
+  @Expose()
+  is_verified!: boolean;
 }

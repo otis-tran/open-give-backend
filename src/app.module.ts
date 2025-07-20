@@ -9,7 +9,15 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaService } from './core/prisma/prisma.service';
 
 @Module({
-  imports: [ConfigModule.forRoot(), NotificationModule, UsersModule, AuthModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: ['.env', '.env.development', '.env.production'],
+    }),
+    NotificationModule,
+    UsersModule,
+    AuthModule,
+  ],
   controllers: [AppController],
   providers: [AppService, HashService, PrismaService],
 })
