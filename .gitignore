@@ -1,4 +1,4 @@
-# compiled output
+# Compiled output
 /dist
 /node_modules
 /build
@@ -14,6 +14,7 @@ lerna-debug.log*
 
 # OS
 .DS_Store
+Thumbs.db
 
 # Tests
 /coverage
@@ -37,6 +38,7 @@ lerna-debug.log*
 
 # dotenv environment variable files
 .env
+.env.*
 .env.development.local
 .env.test.local
 .env.production.local
@@ -55,4 +57,106 @@ pids
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
-/generated/prisma
+# Generated files
+/generated
+.prisma
+
+# Database
+*.db
+*.sqlite
+*.dump
+backup.*
+database.json
+
+# Project specific
+structure.txt
+project-tree.txt
+
+# Cache directories
+.cache
+.eslintcache
+.nyc_output
+
+# Package manager lock files (choose one based on your preference)
+# package-lock.json  # Remove this line if using npm
+# pnpm-lock.yaml   # Remove this line if using pnpm
+# yarn.lock        # Remove this line if using yarn
+
+# Nest.js specific
+.nest
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Error screenshots/videos (if using testing tools)
+screenshots/
+videos/
+cypress/videos/
+cypress/screenshots/
+
+# Local development
+local/
+tmp/
+temp/
+
+# MacOS specific
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Windows specific
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux specific
+*~
+.fuse_hidden*
+.directory
+
+# Editor backups
+*.swp
+*.swo
+*~
+.#*
+\#*#
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Vim
+*.swp
+*.swo
+Session.vim
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# Local History for Visual Studio Code
+.history/
